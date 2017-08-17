@@ -1,6 +1,16 @@
 module XCAST where
 
-data XConstant = XConstInt Integer | XConstChar Char | XConstEnum String deriving Show
-data XVarRef = XVarRefIdent String | XVarIdx String XExpression | XVarMember String XVarRef deriving Show
-data XPostExp = XPostInc XVarRef | XPostDec XVarRef deriving Show
-data XExpression = Nil | XFuncCall String [XExpression] deriving Show
+data XExpression = Nil |
+  XFuncCall String [XExpression] |
+  XPostInc XExpression |
+  XPostDec XExpression |
+  XVarRefIdent String |
+  XVarIdx String XExpression |
+  XVarMember String XExpression |
+  XConstInt Integer |
+  XConstChar Char |
+  XConstEnum String |
+  XString String |
+  XAdd XExpression XExpression |
+  XSub XExpression XExpression
+  deriving Show
