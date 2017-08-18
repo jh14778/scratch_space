@@ -1,6 +1,6 @@
 module Main where
 
-import XCAST
+import XExpression
 import Text.Parsec
 import Text.Parsec.Expr
 import Text.Parsec.Language
@@ -9,12 +9,12 @@ import qualified Text.Parsec.Token as Token
 reserved_names = []
 
 lexer = Token.makeTokenParser $ emptyDef {
-  Token.commentStart   = "/*",
-  Token.commentEnd     = "*/",
-  Token.commentLine    = "//",
-  Token.nestedComments = False,
-  Token.reservedNames  = reserved_names
-}
+    Token.commentStart   = "/*",
+    Token.commentEnd     = "*/",
+    Token.commentLine    = "//",
+    Token.nestedComments = False,
+    Token.reservedNames  = reserved_names
+  }
 
 identifier = Token.identifier lexer
 intLit     = Token.integer lexer
@@ -28,37 +28,35 @@ commaSep   = Token.commaSep lexer
 reservedOp = Token.reservedOp lexer
 
 expression :: Parsec String u XExpression
-expression = try func_call <|> var_ref <|> constant <|> xstring
+expression = buildExpressionParser table term <?> "expression"
 
-arith_expr :: Parsec String u XExpression
-arith_expr = do
-  e1 <- expression
-  add_expr e1 <|> sub_expr e1
+table = [
+    [Prefix (reservedOp "-" >> return XNeg), Prefix (reservedOp "+" >> return XPos)],
+    [Prefix (reservedOp "~" >> return XBitNot), Prefix (reservedOp "!" >> return XLogicNot)],
+    [Prefix (reservedOp "&" >> return XRef), Prefix (reservedOp "*" >> return XDeref)],
+    [Prefix (reservedOp "++" >> return XPreInc), Prefix (reservedOp "--" >> return XPreDec)],
+    [Infix (reservedOp "+" >> return XAdd) AssocLeft, Infix (reservedOp "-" >> return XSub) AssocLeft],
+    [Infix (reservedOp "*" >> return XMul) AssocLeft, Infix (reservedOp "/" >> return XDiv) AssocLeft, Infix (reservedOp "%" >> return XMod) AssocLeft],
+    [Postfix (reservedOp "++" >> return XPostInc), Postfix (reservedOp "--" >> return XPostDec)],
+    [Infix (reservedOp "<<" >> return XLShift) AssocLeft, Infix (reservedOp ">>" >> return XRShift) AssocLeft],
+    [Infix (reservedOp "==" >> return XEq) AssocLeft, Infix (reservedOp "!=" >> return XNeq) AssocLeft],
+    [Infix (reservedOp "<" >> return XLess) AssocLeft, Infix (reservedOp ">" >> return XGreater) AssocLeft],
+    [Infix (reservedOp "<=" >> return XLeq) AssocLeft, Infix (reservedOp ">=" >> return XGeq) AssocLeft]
+  ]
 
-add_expr :: XExpression -> Parsec String u XExpression
-add_expr e1 = reservedOp "+" >> expression >>= return.(XAdd e1)
-
-sub_expr :: XExpression -> Parsec String u XExpression
-sub_expr e1 = reservedOp "-" >> expression >>= return.(XSub e1)
+term :: Parsec String u XExpression
+term = parens expression <|> try func_call <|>
+  var_ref <|> constant <|> xstring
 
 xstring :: Parsec String u XExpression
 xstring = stringLit >>= return.XString
 
 constant :: Parsec String u XExpression
-constant = (charLit >>= return.XConstChar) <|>
-  ((intLit <|> octLit <|> hexLit) >>= return.XConstInt)
+constant = (XConstChar <$> charLit) <|>
+  (XConstInt <$> (intLit <|> octLit <|> hexLit))
 
 func_call :: Parsec String u XExpression
-func_call = do
-  ident <- identifier
-  params <- parens $ commaSep expression
-  return $ XFuncCall ident params
-
-post_exp :: Parsec String u XExpression
-post_exp = var_ref >>= \var -> choice [
-    string "++" >> return (XPostInc var),
-    string "--" >> return (XPostDec var)
-  ]
+func_call = XFuncCall <$> identifier <*> (parens.commaSep) expression
 
 var_ref :: Parsec String u XExpression
 var_ref = identifier >>= \ident -> choice [
