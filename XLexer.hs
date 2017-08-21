@@ -19,6 +19,7 @@ identifier = Token.identifier lexer
 intLit     = Token.integer lexer
 octLit     = Token.octal lexer
 hexLit     = Token.hexadecimal lexer
+naturalLit = Token.natural lexer
 charLit    = Token.charLiteral lexer
 stringLit  = Token.stringLiteral lexer
 parens     = Token.parens lexer

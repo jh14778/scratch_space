@@ -6,14 +6,16 @@ import Text.Parsec.Expr
 import Text.Parsec.Language
 import qualified Text.Parsec.Token as Token
 
+type Identifier = String
+
 data XExpression = Nil |
-  XFuncCall String [XExpression] |
-  XVarRefIdent String |
-  XVarIdx String XExpression |
-  XVarMember String XExpression |
+  XFuncCall Identifier [XExpression] |
+  XVarRefIdent Identifier |
+  XVarIdx Identifier XExpression |
+  XVarMember Identifier XExpression |
   XConstInt Integer |
   XConstChar Char |
-  XConstEnum String |
+  XConstEnum Identifier |
   XString String |
   XAdd XExpression XExpression |
   XSub XExpression XExpression |
@@ -38,7 +40,8 @@ data XExpression = Nil |
   XGreater XExpression XExpression |
   XLeq XExpression XExpression |
   XGeq XExpression XExpression |
-  XAssign XExpression XExpression
+  XAssign XExpression XExpression |
+  XCast Identifier XExpression
   deriving Show
 
 type XExpParser = Parsec String () XExpression
@@ -48,7 +51,7 @@ expression = buildExpressionParser table term <?> "expression"
 
 -- TODO: Deal with operator precedence
 table = [
-    [Prefix (reservedOp "-" >> return XNeg), Prefix (reservedOp "+" >> return XPos)],
+    [Prefix (reservedOp "-" >> return XNeg)],
     [Prefix (reservedOp "~" >> return XBitNot), Prefix (reservedOp "!" >> return XLogicNot)],
     [Prefix (reservedOp "&" >> return XRef), Prefix (reservedOp "*" >> return XDeref)],
     [Prefix (reservedOp "++" >> return XPreInc), Prefix (reservedOp "--" >> return XPreDec)],
@@ -63,14 +66,17 @@ table = [
   ]
 
 term :: XExpParser
-term = parens expression <|> try func_call <|>
+term = try cast <|> parens expression <|> try func_call <|>
   var_ref <|> constant <|> xstring
+
+cast :: XExpParser
+cast = XCast <$> parens identifier <*> expression
 
 xstring :: XExpParser
 xstring = XString <$> stringLit
 
 constant :: XExpParser
-constant = XConstChar <$> charLit <|> XConstInt <$> (intLit <|> octLit <|> hexLit)
+constant = XConstChar <$> charLit <|> XConstInt <$> naturalLit
 
 func_call :: XExpParser
 func_call = XFuncCall <$> identifier <*> (parens . commaSep $ expression)

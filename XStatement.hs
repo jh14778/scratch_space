@@ -54,7 +54,7 @@ unionDecl :: XStmtParser
 unionDecl = reserved "union" >> XUnionDecl <$> (maybeParse identifier) <*> (braces $ semiSep varDecl)
 
 funcDecl :: XStmtParser
-funcDecl = XFuncDecl <$> varDecl <*> (parens $ commaSep varDecl') <*> (braces $ semiSep statement)
+funcDecl = XFuncDecl <$> varDecl <*> (parens $ commaSep varDecl') <*> ((braces $ semiSep statement) <|> (reservedOp ";" >> return []))
 
 varDecl :: Parsec String () (String, String)
 varDecl = tie <$> identifier <*> identifier
