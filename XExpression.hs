@@ -41,7 +41,8 @@ data XExpression = Nil |
   XLeq XExpression XExpression |
   XGeq XExpression XExpression |
   XAssign XExpression XExpression |
-  XCast Identifier XExpression
+  XCast Identifier XExpression |
+  XComma XExpression XExpression
   deriving Show
 
 type XExpParser = Parsec String () XExpression
@@ -62,7 +63,7 @@ table = [
     [Infix (reservedOp "==" >> return XEq) AssocLeft, Infix (reservedOp "!=" >> return XNeq) AssocLeft],
     [Infix (reservedOp "<" >> return XLess) AssocLeft, Infix (reservedOp ">" >> return XGreater) AssocLeft],
     [Infix (reservedOp "<=" >> return XLeq) AssocLeft, Infix (reservedOp ">=" >> return XGeq) AssocLeft],
-    [Infix (reservedOp "=" >> return XAssign) AssocRight]
+    [Infix (reservedOp "=" >> return XAssign) AssocRight, Infix (reservedOp "," >> return XComma) AssocLeft]
   ]
 
 term :: XExpParser
