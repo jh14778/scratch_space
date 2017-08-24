@@ -7,33 +7,24 @@ import Text.Parsec
 import Text.Parsec.Language
 
 data XStatement =
-  Nil |
-  XStmtSeq [XStatement] |
-  XIfElse XExpression XStatement (Maybe XStatement) |
-  XWhile XExpression XStatement |
-  XDoWhile XStatement XExpression |
-  XFor XExpression XExpression XExpression XStatement |
-  XPar XStatement |
-  XExpStmt XExpression |
-  XEnumDecl (Maybe Identifier) [Identifier] |
-  XStructDecl (Maybe Identifier) [(Identifier,Identifier)] |
-  XUnionDecl (Maybe Identifier) [(Identifier,Identifier)] |
-  XInterDecl (Maybe Identifier) [XStatement] |
-  XFuncDecl (Identifier,Identifier) [(Identifier,Maybe Identifier)] [XStatement] |
-  XVarDecl Identifier [XExpression] |
-  XTypeDef Identifier Identifier |
-  XReturn XExpression |
-  XBreak |
-  XContinue
+  Nil | XStmtSeq [XStatement] | XIfElse XExpression XStatement (Maybe XStatement) |
+  XWhile XExpression XStatement | XDoWhile XStatement XExpression | XFor XExpression XExpression XExpression XStatement |
+  XPar XStatement | XExpStmt XExpression | XEnumDecl (Maybe Identifier) [Identifier] |
+  XStructDecl (Maybe Identifier) [(Identifier,Identifier)] | XUnionDecl (Maybe Identifier) [(Identifier,Identifier)] |
+  XInterDecl (Maybe Identifier) [XStatement] | XFuncDecl (Identifier,Identifier) [(Identifier,Maybe Identifier)] [XStatement] |
+  XVarDecl Identifier [XExpression] | XTypeDef Identifier Identifier | XReturn XExpression |
+  XBreak | XContinue
   deriving Show
 
 type XStmtParser = Parsec String () XStatement
 
 externStmt :: XStmtParser
-externStmt = preprocessor <|> enumDecl <|> structDecl <|> unionDecl <|> interDecl <|> typedef <|> try varDeclStmt <|> funcDecl
+externStmt = preprocessor <|> enumDecl <|> structDecl <|> unionDecl <|> interDecl <|>
+  typedef <|> try varDeclStmt <|> funcDecl
 
 statement :: XStmtParser
-statement = xbreak <|> xcontinue <|> ret <|> typedef <|> whileLoop <|> ifElseStmt <|> forLoop <|> doWhile <|> par <|> ((semi) >> return XStatement.Nil) <|> try varDeclStmt <|> seqStmt <|> expStmt
+statement = xbreak <|> xcontinue <|> ret <|> typedef <|> whileLoop <|> ifElseStmt <|>
+  forLoop <|> doWhile <|> par <|> ((semi) >> return XStatement.Nil) <|> try varDeclStmt <|> seqStmt <|> expStmt
 
 seqStmt :: XStmtParser
 seqStmt = XStmtSeq <$> (braces $ many statement)
