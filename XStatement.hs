@@ -12,7 +12,7 @@ data XStatement =
   XIfElse XExpression XStatement (Maybe XStatement) |
   XWhile XExpression XStatement |
   XDoWhile XStatement XExpression |
-  XFor XStatement XStatement XExpression XStatement |
+  XFor XExpression XExpression XExpression XStatement |
   XPar XStatement |
   XExpStmt XExpression |
   XEnumDecl (Maybe Identifier) [Identifier] |
@@ -45,7 +45,7 @@ ifElseStmt :: XStmtParser
 ifElseStmt = reserved "if" >> XIfElse <$> (parens expression) <*> statement <*> (maybeParse (reserved "else" >> statement))
 
 forLoop :: XStmtParser
-forLoop = reserved "for" >> parens (XFor <$> statement <*> expStmt <*> expression) <*> statement
+forLoop = reserved "for" >> parens (XFor <$> (expression <* reservedOp ";") <*> (expression <* reservedOp ";") <*> expression) <*> statement
 
 doWhile :: XStmtParser
 doWhile = reserved "do" >> XDoWhile <$> statement <*> (reserved "while" >> parens expression)
