@@ -1,12 +1,14 @@
 module XLexer where
 
+import XUtils
+import Data.List
 import Text.Parsec
 import Text.Parsec.Expr
 import Text.Parsec.Language
 import qualified Text.Parsec.Token as Token
 
-reserved_names = ["break","continue","do","par","if","for","return","enum","struct","union","else","interface","typedef"]
-reserved_ops   = ["-","~","!","&","*","++","--","+","-","*","/","%","++","--","<<",">>","==","!=","<",">","<=",">=","=",","]
+reserved_names = unique $ ["break","continue","do","par","if","for","return","enum","struct","union","else","interface","typedef"]
+reserved_ops   = unique $ ["-","~","!","&","*","++","--","+","*","/","%","--","<<",">>","==","!=","<",">","<=",">=","=",","]
 
 lexer = Token.makeTokenParser $ emptyDef {
     Token.commentStart    = "/*",
