@@ -24,7 +24,7 @@ externStmt = preprocessor <|> enumDecl <|> structDecl <|> unionDecl <|> interDec
 
 statement :: XStmtParser
 statement = xbreak <|> xcontinue <|> ret <|> typedef <|> whileLoop <|> ifElseStmt <|>
-  forLoop <|> doWhile <|> par <|> ((semi) >> return XStatement.Nil) <|> try varDeclStmt <|> seqStmt <|> expStmt
+  forLoop <|> doWhile <|> par <|> (semi >> return XStatement.Nil) <|> try varDeclStmt <|> seqStmt <|> expStmt
 
 seqStmt :: XStmtParser
 seqStmt = XStmtSeq <$> (braces $ many statement)
@@ -36,7 +36,7 @@ ifElseStmt :: XStmtParser
 ifElseStmt = reserved "if" >> XIfElse <$> (parens expression) <*> statement <*> (maybeParse (reserved "else" >> statement))
 
 forLoop :: XStmtParser
-forLoop = reserved "for" >> parens (XFor <$> (expression <* (semi)) <*> (expression <* (semi)) <*> expression) <*> statement
+forLoop = reserved "for" >> parens (XFor <$> (expression <* semi) <*> (expression <* semi) <*> expression) <*> statement
 
 doWhile :: XStmtParser
 doWhile = reserved "do" >> XDoWhile <$> statement <*> (reserved "while" >> parens expression)
@@ -45,16 +45,16 @@ par :: XStmtParser
 par = reserved "par" >> XPar <$> statement
 
 ret :: XStmtParser
-ret = reserved "return" >> XReturn <$> expression <* (semi)
+ret = reserved "return" >> XReturn <$> expression <* semi
 
 xbreak :: XStmtParser
-xbreak = reserved "break" >> return XBreak <* (semi)
+xbreak = reserved "break" >> return XBreak <* semi
 
 xcontinue :: XStmtParser
-xcontinue = reserved "continue" >> return XContinue <* (semi)
+xcontinue = reserved "continue" >> return XContinue <* semi
 
 expStmt :: XStmtParser
-expStmt = XExpStmt <$> expression <* (semi)
+expStmt = XExpStmt <$> expression <* semi
 
 enumDecl :: XStmtParser
 enumDecl = reserved "enum" >> XEnumDecl <$> (maybeParse identifier) <*> (braces $ commaSep identifier)
@@ -69,13 +69,13 @@ interDecl :: XStmtParser
 interDecl = reserved "interface" >> XInterDecl <$> (maybeParse identifier) <*> (braces $ many funcDecl)
 
 funcDecl :: XStmtParser
-funcDecl = XFuncDecl <$> varDecl <*> (parens $ commaSep varDecl') <*> ((braces $ many statement) <|> ((semi) >> return []))
+funcDecl = XFuncDecl <$> varDecl <*> (parens $ commaSep varDecl') <*> ((braces $ many statement) <|> (semi >> return []))
 
 typedef :: XStmtParser
-typedef = reserved "typedef" >> XTypeDef <$> identifier <*> identifier <* (semi)
+typedef = reserved "typedef" >> XTypeDef <$> identifier <*> identifier <* semi
 
 varDeclStmt :: XStmtParser
-varDeclStmt = XVarDecl <$> identifier <*> (commaSep expression) <* (semi)
+varDeclStmt = XVarDecl <$> identifier <*> (commaSep expression) <* semi
 
 preprocessor :: XStmtParser
 preprocessor = reservedOp "#" >> (manyTill anyChar newline) >> return XStatement.Nil
