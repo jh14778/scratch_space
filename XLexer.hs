@@ -5,14 +5,16 @@ import Text.Parsec.Expr
 import Text.Parsec.Language
 import qualified Text.Parsec.Token as Token
 
-reserved_names = []
+reserved_names = ["break","continue","do","par","if","for","return","enum","struct","union","else","interface","typedef"]
+reserved_ops   = ["-","~","!","&","*","++","--","+","-","*","/","%","++","--","<<",">>","==","!=","<",">","<=",">=","=",","]
 
 lexer = Token.makeTokenParser $ emptyDef {
-    Token.commentStart   = "/*",
-    Token.commentEnd     = "*/",
-    Token.commentLine    = "//",
-    Token.nestedComments = False,
-    Token.reservedNames  = reserved_names
+    Token.commentStart    = "/*",
+    Token.commentEnd      = "*/",
+    Token.commentLine     = "//",
+    Token.nestedComments  = False,
+    Token.reservedNames   = reserved_names,
+    Token.reservedOpNames = reserved_ops
   }
 
 identifier = Token.identifier lexer
@@ -29,3 +31,4 @@ semiSep    = Token.semiSep lexer
 reservedOp = Token.reservedOp lexer
 reserved   = Token.reserved lexer
 braces     = Token.braces lexer
+semi       = Token.semi lexer
